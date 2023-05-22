@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  spring-boot:
+    build:
+      context: ./todo-app
+      dockerfile: Dockerfile
+    ports:
+      - 9090:9090
+    command:
+      sh -c "mvn clean spring-boot:run"
+    volumes:
+      - ./todo-app:/app
