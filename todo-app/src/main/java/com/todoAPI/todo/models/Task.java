@@ -1,6 +1,6 @@
 package com.todoAPI.todo.models;
 
-import java.time.LocalDateTime; 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.io.Serializable; 
 
@@ -15,16 +15,18 @@ public class Task implements Serializable {
     static int id = 0;
     private int taskId = id;
     private String name;
-    private String dueDate;
+    private LocalDateTime dueDate;
     private int priority;
     private String priorityName;
     private boolean isDone;
-    private String doneDate;
+    private LocalDateTime doneDate;
+    private LocalDateTime createdDate;
 
     // Constructors
     public Task() {
         this.id += 1;
         this.taskId = id;
+        this.createdDate = LocalDateTime.now();
     }
 
     /**
@@ -35,7 +37,7 @@ public class Task implements Serializable {
      * @param: priorityName - The priority name of the task.
      * @version: 1.0`
     */
-    public Task(String name, String dueDate, int priority, String priorityName) {
+    public Task(String name, LocalDateTime dueDate, int priority, String priorityName) {
         this.id += 1;
         this.taskId = id;
         this.name = name;
@@ -44,6 +46,7 @@ public class Task implements Serializable {
         this.priorityName = priorityName;
         this.isDone = false;
         this.doneDate = null;
+        this.createdDate = LocalDateTime.now();
     }
 
     // Getters
@@ -71,7 +74,7 @@ public class Task implements Serializable {
      * @version: 1.0
      * @return: dueDate - The due date of the task.
      */
-    public String getDueDate() {
+    public LocalDateTime getDueDate() {
         return this.dueDate;
     }
 
@@ -107,8 +110,17 @@ public class Task implements Serializable {
      * @version: 1.0
      * @return: doneDate - The done date of the task.
      */
-    public String getDoneDate() {
+    public LocalDateTime getDoneDate() {
         return this.doneDate;
+    }
+
+    /**
+     * This method returns the created date of the task.
+     * @version: 1.0
+     * @return: createdDate - The created date of the task.
+     */
+    public LocalDateTime getCreatedDate() {
+        return this.createdDate;
     }
 
 
@@ -127,7 +139,7 @@ public class Task implements Serializable {
      * @param: dueDate - The due date of the task.
      * @version: 1.0
      */
-    public void setDueDate(String dueDate) {
+    public void setDueDate(LocalDateTime dueDate) {
         this.dueDate = dueDate;
     }
 
@@ -163,7 +175,7 @@ public class Task implements Serializable {
      * @param: doneDate - The done date of the task.
      * @version: 1.0
      */
-    public void setDoneDate(String doneDate) {
+    public void setDoneDate(LocalDateTime doneDate) {
         this.doneDate = doneDate;
     }
 
@@ -175,9 +187,7 @@ public class Task implements Serializable {
      */
     public void markAsDone() {
         this.isDone = true;
-        LocalDateTime date = LocalDateTime.now();
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        this.doneDate = dtf.format(date);
+        this.doneDate = LocalDateTime.now();
     }
 
     /**
