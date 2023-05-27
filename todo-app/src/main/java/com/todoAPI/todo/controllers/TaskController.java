@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.http.ResponseEntity;
 
 import java.util.HashMap;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 import com.todoAPI.todo.models.Task;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:8080")
 @RequestMapping("/api/v1/todo")
 public class TaskController {
     private HashMap<Integer, Task> tasks = new HashMap<>();
@@ -37,19 +39,10 @@ public class TaskController {
         priorities.put(3, "High");
     }
 
+    @CrossOrigin(origins = "http://localhost:8080")
     @GetMapping("/")
     public String index() {
         return "Hello World";
-    }
-
-    /**
-     * This method returns the priorities of the tasks.
-     * @version: 1.0
-     * @return: priorities - The priorities of the tasks.
-     */
-    @GetMapping("/priorities")
-    public ResponseEntity<Object> getPriorities() {
-        return ResponseEntity.ok(this.priorities);
     }
 
     /**
@@ -57,13 +50,14 @@ public class TaskController {
      * @version: 1.0
      * @return: tasks - The tasks.
      */
+    @CrossOrigin(origins = "http://localhost:8080")
     @GetMapping("/task")
     public ResponseEntity<Object> getTasks(
             @RequestParam(name="name", required = false, defaultValue = "") String name,
             @RequestParam(name="priority", required = false, defaultValue = "0") Integer priority,
-            @RequestParam(name="isDone", required = false, defaultValue = "false") Boolean isDone,
-            @RequestParam(name="sortByDate", required = false, defaultValue = "false") Boolean sortByDate,
-            @RequestParam(name="sortByPriority", required = false, defaultValue = "false") Boolean sortByPriority,
+            @RequestParam(name="isDone", required = false) Boolean isDone,
+            @RequestParam(name="sortByDueDate", required = false) String sortByDueDate,
+            @RequestParam(name="sortByPriority", required = false) String sortByPriority,
             @RequestParam(name="page", required = false, defaultValue = "1") Integer page
         ) {                                
         ArrayList<Task> taskList = new ArrayList<>(tasks.values());
@@ -71,16 +65,20 @@ public class TaskController {
         // Filter the tasks by name, priority and isDone.
         if (!name.equals("")) taskList.removeIf(task -> !task.getName().toLowerCase().contains(name.toLowerCase()));   
         if (priority != 0) taskList.removeIf(task -> task.getPriority() != priority);
-        if (isDone != false) taskList.removeIf(task -> task.getIsDone() != isDone);
-        //TODO: Sort the tasks by date and priority.
-        if (sortByDate != false && taskList.size() > 1) taskList.sort((task1, task2) -> task1.getDueDate().compareTo(task2.getDueDate()));
-        if (sortByPriority != false && taskList.size() > 1) taskList.sort((task1, task2) -> task2.getPriority() - task1.getPriority());
+        if (isDone != null) taskList.removeIf(task -> task.getIsDone() != isDone);
+
+        if (sortByDueDate != null && taskList.size() > 1) taskList.sort((task1, task2) -> (sortByDueDate.equals("desc") ? 
+                                                                                            task2.getDueDate().compareTo(task1.getDueDate()) : 
+                                                                                            task1.getDueDate().compareTo(task2.getDueDate())));
+
+        if (sortByPriority != null && taskList.size() > 1) taskList.sort((task1, task2) -> (sortByPriority.equals("desc") ? 
+                                                                                            task2.getPriority() - task1.getPriority() : 
+                                                                                            task1.getPriority() - task2.getPriority()));
 
         // Paginate the tasks.
         int pageSize = 10;
         int fromIndex = (page - 1) * pageSize;
         int toIndex = Math.min(fromIndex + pageSize, taskList.size());
-        if (fromIndex >= taskList.size()) return ResponseEntity.notFound().build();
         ArrayList<Task> paginatedTasks = new ArrayList<>(taskList.subList(fromIndex, toIndex));
         
         // Return the total tasks and the paginated tasks.
@@ -99,6 +97,7 @@ public class TaskController {
      * @version: 1.0
      * @return: task - The task with the given id.
      */
+    @CrossOrigin(origins = "http://localhost:8080")
     @PostMapping("/task")
     public ResponseEntity<Object> createTask(@RequestBody Task task) {
         // Name and priority validation.
@@ -108,8 +107,10 @@ public class TaskController {
         task.setPriorityName(this.priorities.get(task.getPriority()));
 
         // Date validation.
-        if (task.getDueDate() != null && task.getDueDate().isBefore(LocalDateTime.now()))
-            return ResponseEntity.badRequest().body("The due date must be equals of after today.");
+        if (task.getDueDate() != null && 
+        LocalDateTime.now().truncatedTo(ChronoUnit.DAYS)
+        .isAfter(task.getDueDate().truncatedTo(ChronoUnit.DAYS)))
+            return ResponseEntity.badRequest().body("The due date must be greater than today.");
 
         // Add the task to the tasks list.
         tasks.put(task.getId(), task);
@@ -122,6 +123,7 @@ public class TaskController {
      * @version: 1.0
      * @return: task - The task with the given id.
      */
+    @CrossOrigin(origins = "http://localhost:8080")
     @GetMapping("/task/{id}")
     public ResponseEntity<Object> getTask(@PathVariable("id") int id) {
         Task task = tasks.get(id);
@@ -138,6 +140,7 @@ public class TaskController {
      * @version: 1.0
      * @return: task - The task with the given id.
      */
+    @CrossOrigin(origins = "http://localhost:8080")
     @PutMapping("/task/{id}")
     public ResponseEntity<Object> updateTask(@PathVariable("id") int id, @RequestBody Task task) {
         Task taskToUpdate = tasks.get(id);
@@ -150,8 +153,10 @@ public class TaskController {
         task.setPriorityName(this.priorities.get(task.getPriority()));
 
         // Date validation.
-        if (task.getDueDate() != null && task.getDueDate().isBefore(LocalDateTime.now()))
-            return ResponseEntity.badRequest().body("The due date must be equals of after today.");
+        if (task.getDueDate() != null && 
+            LocalDateTime.now().truncatedTo(ChronoUnit.DAYS)
+            .isAfter(task.getDueDate().truncatedTo(ChronoUnit.DAYS)))
+            return ResponseEntity.badRequest().body("The due date must be greater than today.");
 
         // Update the task.
         taskToUpdate.setName(task.getName());
@@ -169,6 +174,7 @@ public class TaskController {
      * @version: 1.0
      * @return: task - The task with the given id.
      */
+    @CrossOrigin(origins = "http://localhost:8080")
     @DeleteMapping("/task/{id}")
     public ResponseEntity<Object> deleteTask(@PathVariable("id") int id) {
         Task task = tasks.get(id);
@@ -183,6 +189,7 @@ public class TaskController {
      * @version: 1.0
      * @return: task - The task with the given id.
      */
+    @CrossOrigin(origins = "http://localhost:8080")
     @PostMapping("/task/{id}/done")
     public ResponseEntity<Object> markTaskAsDone(@PathVariable("id") int id) {
         Task task = tasks.get(id);
@@ -198,6 +205,7 @@ public class TaskController {
      * @version: 1.0
      * @return: task - The task with the given id.
      */
+    @CrossOrigin(origins = "http://localhost:8080")
     @PutMapping("/task/{id}/undone")
     public ResponseEntity<Object> markTaskAsUndone(@PathVariable("id") int id) {
         Task task = tasks.get(id);
@@ -212,6 +220,7 @@ public class TaskController {
      * grouped by priority.
      * @version: 1.0
      */
+    @CrossOrigin(origins = "http://localhost:8080")
     @GetMapping("/task/average")
     public ResponseEntity<Object> getAverageTime() {
         // Get the tasks grouped by priority.
