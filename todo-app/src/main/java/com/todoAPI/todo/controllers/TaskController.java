@@ -67,9 +67,24 @@ public class TaskController {
         if (priority != 0) taskList.removeIf(task -> task.getPriority() != priority);
         if (isDone != null) taskList.removeIf(task -> task.getIsDone() != isDone);
 
-        if (sortByDueDate != null && taskList.size() > 1) taskList.sort((task1, task2) -> (sortByDueDate.equals("desc") ? 
-                                                                                            task2.getDueDate().compareTo(task1.getDueDate()) : 
-                                                                                            task1.getDueDate().compareTo(task2.getDueDate())));
+        if (sortByDueDate != null && taskList.size() > 1) {
+            ArrayList<Task> dueDatedTasks = new ArrayList<>();
+            ArrayList<Task> noDueDatedTasks = new ArrayList<>();
+            
+            taskList.forEach(task -> {
+                if (task.getDueDate() != null) dueDatedTasks.add(task);
+                else noDueDatedTasks.add(task);
+            });
+
+            if (sortByDueDate.equals("desc") && dueDatedTasks.size() > 1) {
+                dueDatedTasks.sort((task1, task2) -> task2.getDueDate().compareTo(task1.getDueDate()));
+            }
+            else if (sortByDueDate.equals("asc") && dueDatedTasks.size() > 1) {
+                dueDatedTasks.sort((task1, task2) -> task1.getDueDate().compareTo(task2.getDueDate()));
+            }
+
+            taskList = Stream.concat(dueDatedTasks.stream(), noDueDatedTasks.stream()).collect(Collectors.toCollection(ArrayList::new));
+        }
 
         if (sortByPriority != null && taskList.size() > 1) taskList.sort((task1, task2) -> (sortByPriority.equals("desc") ? 
                                                                                             task2.getPriority() - task1.getPriority() : 
@@ -232,17 +247,26 @@ public class TaskController {
 
         // Calculate the average time in mintues of doing the tasks grouped by priority.
         HashMap<String, Double> response = new HashMap<>();
+        double totalAverageTime = 0;
+        int finishedTasks = 0;
         for (Map.Entry<String, List<Task>> entry : tasksByPriority.entrySet()) {
-            List<Task> tasks = entry.getValue();
-            double averageTime = tasks.stream().mapToDouble(task -> {
-                if (task.getDoneDate() == null) return 0;
-                return ChronoUnit.MINUTES.between(
-                    task.getCreatedDate(), 
-                    task.getDoneDate()
-                );
-            }).average().orElse(0);
+            double averageTime = 0;
+            int totalTasks = 0;
+            for (Task task : entry.getValue()) {
+                if (task.getDoneDate() != null) {
+                    averageTime += ChronoUnit.MINUTES.between(task.getCreatedDate(), task.getDoneDate());
+                    totalTasks++;
+                    finishedTasks++;
+                }
+            }
+            if (totalTasks > 0) {
+                averageTime /= totalTasks;
+                totalAverageTime += averageTime;
+            }
             response.put(entry.getKey(), averageTime);
         }
+
+        response.put("Total", (finishedTasks > 0) ? totalAverageTime / finishedTasks : 0);
         return ResponseEntity.ok(response);
     }
 }
