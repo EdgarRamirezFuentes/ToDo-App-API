@@ -1,4 +1,4 @@
-com/todoAPI/todo/ServletInitializer.class
 com/todoAPI/todo/models/Task.class
-com/todoAPI/todo/TodoApplication.class
+com/todoAPI/todo/ServletInitializer.class
 com/todoAPI/todo/controllers/TaskController.class
+com/todoAPI/todo/TodoApplication.class

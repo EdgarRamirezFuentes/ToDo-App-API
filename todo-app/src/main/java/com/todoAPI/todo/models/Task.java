@@ -12,7 +12,7 @@ import java.io.Serializable;
  * @param: dueDate - The due date of the task.
  */
 public class Task implements Serializable {
-    static int id = 0;
+    public static int id = 0;
     private int taskId = id;
     private String name;
     private LocalDateTime dueDate;

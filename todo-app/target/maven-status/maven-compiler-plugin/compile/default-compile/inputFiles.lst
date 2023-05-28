@@ -1,2 +1,6 @@
+/app/src/main/java/com/todoAPI/todo/services/TaskService.java
+/app/src/main/java/com/todoAPI/todo/controllers/TaskController.java
 /app/src/main/java/com/todoAPI/todo/TodoApplication.java
+/app/src/main/java/com/todoAPI/todo/repositories/TaskRepository.java
+/app/src/main/java/com/todoAPI/todo/models/Task.java
 /app/src/main/java/com/todoAPI/todo/ServletInitializer.java
