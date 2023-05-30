@@ -83,3 +83,57 @@ They need at least the following commands to run the project:
 - mvn test – To run all tests in the back-end application 
 
 Back-end project must run in port 9090. 
+
+## Requirements
+- [Docker](https://www.docker.com/)
+- Code Editor or IDE (For this example we will use [Visual Studio Code](https://code.visualstudio.com/))
+- Install and Run the [ToDo App  API](https://github.com/EdgarRamirezFuentes/ToDo-App-API).
+
+
+## Installation
+
+The best thing about using the project with docker is that you can setup the Spring environment, run the tests, and run the project by
+just running the following command:
+
+```bash
+Windows/MacOs
+docker-compose up --build
+
+Linux
+sudo docker-compose up --build
+```
+
+Another advantage of using Docker is that you don't need to care about configuring the development environment in other computers, because Docker uses containers where the project runs, and it works in any computer you use because the Dockerfile contains the container configuration to make the project run in a correct development environment.
+
+### Steps
+
+- Install Docker Desktop 
+- Open Docker Desktop. As you can see, at this moment there is no container for our ToDo App API (Spring Project)
+- Open this project in Visual Studio Code.
+
+![Open VS Code](./assets/open-vs.png)
+
+- Open a terminal in Visual Studio Code
+
+![Open terminal](./assets/open-terminal.png)
+
+- Run the following command in the terminal: ```docker compose up --build```
+
+![Docker Compose command](./assets/terminal-command.png)
+
+As you can see, after running the command, Docker will configure the container to run the project.
+![Container Configuration](./assets/run-command.png)
+
+After the container was configured correctly, Docker will run the test using the command ```mvn test```. If every test passed, Docker will run the project using the command ```mvn spring-boot:run```
+![Passed Tests](./assets/passed-tests.png)
+![Docker container running](./assets/container-running.png)
+
+![Docker compose File](./assets/docker-compose-file.png)
+
+- As you can see, Docker shows that the Tomcat is running in ```http://localhost:9090/```.
+- Open your Web Browser and go to ```http://localhost:9090/swagger-ui/index.html``` to see the API Docs.
+
+![API Docs](./assets/API-docs.png)
+
+
+Click [here](https://youtu.be/Wu-HqB15H1o) to see the API being consumed by a React App.
